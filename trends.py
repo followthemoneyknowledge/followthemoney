@@ -162,6 +162,7 @@ def main():
     mode = "all"
     geos = ["US", "DE"]  # default: both
     research_mode = False
+    script_mode = False
 
     for arg in args:
         if arg.upper() in GEO_CONFIG:
@@ -170,6 +171,8 @@ def main():
             mode = arg
         elif arg == "research":
             research_mode = True
+        elif arg == "script":
+            script_mode = True
 
     all_matches = []
 
@@ -196,6 +199,13 @@ def main():
         org = all_matches[0]["org"]
         console.print(f"\n[bold cyan]Launching revenue research for: {org}[/bold cyan]")
         subprocess.run([sys.executable, "research.py", org])
+
+    # Auto-generate script for first match
+    if script_mode and all_matches:
+        org = all_matches[0]["org"]
+        console.print(f"\n[bold cyan]Generating reel script for: {org}[/bold cyan]")
+        import script as script_module
+        script_module.run(org, silent_research=True)
 
 
 if __name__ == "__main__":
