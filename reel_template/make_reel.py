@@ -134,6 +134,28 @@ PALETTES = {
         "blue_lift":    -3,
     },
 
+    # ── Finance Editorial — deep navy, gold numbers, clean type ─
+    # High-contrast dark canvas for data-forward finance content.
+    # Gold accent on the key number; cool navy base distances the
+    # palette from warm luxury — this is data, not lifestyle.
+    "finance_editorial": {
+        "bg":           (8, 10, 20),
+        "top_gradient": (8, 10, 20),
+        "bot_gradient": (5,  7, 14),
+        "rule_dim":     (40, 55, 100),
+        "rule_bright":  (255, 215, 0),    # pure gold — the money number
+        "text_bright":  (240, 240, 248),  # near-white cool
+        "text_dim":     (100, 120, 180),
+        "text_ghost":   (45,  58,  105),
+        "text_whisper": (185, 190, 220),
+        "text_close":   (155, 165, 200),
+        "color_sat":    0.65,             # desaturated — data not drama
+        "color_con":    1.15,
+        "red_shift":    0.92,
+        "blue_shift":   1.12,
+        "blue_lift":    10,
+    },
+
     # ── Warm Dark — high-contrast gold on near-black ─────────
     # Contemporary luxury for short-form social: vivid gold,
     # deep warm shadows, desaturated product so typography pops.
