@@ -11,7 +11,8 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-import anthropic
+import json
+import urllib.request
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -105,14 +106,16 @@ def format_findings_for_prompt(findings):
     return "\n".join(lines)
 
 
-def generate_script(org, findings, wiki_summary):
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        console.print("[red]Error: ANTHROPIC_API_KEY environment variable not set.[/red]")
-        console.print("[dim]Set it with: export ANTHROPIC_API_KEY=your_key_here[/dim]")
-        sys.exit(1)
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+DEFAULT_MODEL = "anthropic/claude-opus-4-5"
 
-    client = anthropic.Anthropic(api_key=api_key)
+
+def generate_script(org, findings, wiki_summary, model=DEFAULT_MODEL):
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        console.print("[red]Error: OPENROUTER_API_KEY environment variable not set.[/red]")
+        console.print("[dim]Set it with: export OPENROUTER_API_KEY=your_key_here[/dim]")
+        sys.exit(1)
 
     prompt = SCRIPT_TEMPLATE.format(
         org=org,
@@ -120,23 +123,30 @@ def generate_script(org, findings, wiki_summary):
         wiki_summary=wiki_summary[:400] if wiki_summary else "Not available.",
     )
 
-    console.print("\n[bold cyan]Generating script with Claude...[/bold cyan]")
+    console.print(f"\n[bold cyan]Generating script via OpenRouter ({model})...[/bold cyan]")
 
-    with client.messages.stream(
-        model="claude-opus-4-8",
-        max_tokens=1024,
-        thinking={"type": "adaptive"},
-        messages=[{"role": "user", "content": prompt}],
-    ) as stream:
-        script_text = stream.get_final_message().content
+    payload = json.dumps({
+        "model": model,
+        "max_tokens": 1024,
+        "messages": [{"role": "user", "content": prompt}],
+    }).encode()
 
-    # Extract text blocks only
-    result = ""
-    for block in script_text:
-        if hasattr(block, "text"):
-            result += block.text
+    req = urllib.request.Request(
+        OPENROUTER_URL,
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://github.com/followthemoneyknowledge/followthemoney",
+            "X-Title": "Follow the Money",
+        },
+        method="POST",
+    )
 
-    return result.strip()
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        result = json.loads(resp.read())
+
+    return result["choices"][0]["message"]["content"].strip()
 
 
 def display_script(org, script_text):
@@ -201,7 +211,7 @@ def save_script(org, script_text):
     return filename
 
 
-def run(org, silent_research=False):
+def run(org, silent_research=False, model=DEFAULT_MODEL):
     console.print(Panel(
         f"[bold cyan]Follow the Money[/bold cyan] — Script Generator\n"
         f"[dim]Building 90-second reel script for: {org}[/dim]",
@@ -214,12 +224,11 @@ def run(org, silent_research=False):
         wiki_summary = fetch_wikipedia_summary(org)
         console.print(f"[dim]Found {len(findings)} revenue figures[/dim]")
     else:
-        # Full research display (called standalone)
         console.print()
         findings = research_org(org)
         wiki_summary = fetch_wikipedia_summary(org)
 
-    script_text = generate_script(org, findings, wiki_summary)
+    script_text = generate_script(org, findings, wiki_summary, model=model)
     display_script(org, script_text)
     save_script(org, script_text)
 
@@ -228,13 +237,23 @@ def run(org, silent_research=False):
 
 def main():
     if len(sys.argv) < 2:
-        console.print("[red]Usage: python3 script.py <org name>[/red]")
+        console.print("[red]Usage: python3 script.py <org name> [--model <model>][/red]")
         console.print("[dim]Example: python3 script.py FIFA[/dim]")
-        console.print("[dim]Example: python3 script.py 'Borussia Dortmund'[/dim]")
+        console.print("[dim]Example: python3 script.py FIFA --model google/gemini-2.0-flash-001[/dim]")
+        console.print(f"[dim]Default model: {DEFAULT_MODEL}[/dim]")
         sys.exit(1)
 
-    org = " ".join(sys.argv[1:])
-    run(org, silent_research=False)
+    # Parse args: collect org name, check for --model flag
+    raw_args = sys.argv[1:]
+    model = DEFAULT_MODEL
+    if "--model" in raw_args:
+        idx = raw_args.index("--model")
+        if idx + 1 < len(raw_args):
+            model = raw_args[idx + 1]
+            raw_args = raw_args[:idx] + raw_args[idx + 2:]
+
+    org = " ".join(raw_args)
+    run(org, silent_research=False, model=model)
 
 
 if __name__ == "__main__":
