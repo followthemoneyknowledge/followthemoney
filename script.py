@@ -343,7 +343,7 @@ Speak directly to the viewer. Short sentences. No filler phrases. Output only th
             OPENROUTER_URL,
             headers={
                 "Authorization": f"Bearer {OPENROUTER_KEY}",
-                "HTTP-Referer": "https://github.com/followthemoneyknowledge/followthemoney",
+                "HTTP-Referer": "https://github.com/fol.lowthemoneyknowledge/fol.lowthemoney",
                 "X-Title": "follow-the-money-reel",
             },
             json={
@@ -434,7 +434,7 @@ def _generate_config(org: str, reel_slug: str, brand: str,
     caption_full = (
         f"{org} generated {top['amount']} — and most people have no idea where it comes from. "
         f"{hook_a} "
-        f"follow @followthemoney for the next breakdown."
+        f"follow @fol.lowthemoney for the next breakdown."
     )
 
     _e = _esc
@@ -644,13 +644,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Generate a Follow the Money reel script for a trending org."
     )
-    parser.add_argument("--org",   default=None, help="Org name (e.g. 'FIFA')")
-    parser.add_argument("--list",  action="store_true", help="List all orgs and exit")
-    parser.add_argument("--voice", action="store_true", help="Synthesise voiceover via ElevenLabs")
-    parser.add_argument("--run",   action="store_true", help="Render reel after generation")
-    parser.add_argument("--all",   action="store_true", help="Ignore cooldown — pick any org")
-    parser.add_argument("--brand", default="@followthemoney", help="Brand handle for captions")
-    parser.add_argument("--model", default=OPENROUTER_MODEL, help="OpenRouter model override")
+    parser.add_argument("--org",    default=None, help="Org name (e.g. 'FIFA')")
+    parser.add_argument("--list",   action="store_true", help="List all orgs and exit")
+    parser.add_argument("--voice",  action="store_true", help="Synthesise voiceover via ElevenLabs")
+    parser.add_argument("--images", action="store_true", help="Fetch images from Wikimedia Commons")
+    parser.add_argument("--run",    action="store_true", help="Render reel after generation")
+    parser.add_argument("--all",    action="store_true", help="Ignore cooldown — pick any org")
+    parser.add_argument("--brand",  default="@fol.lowthemoney", help="Brand handle for captions")
+    parser.add_argument("--model",  default=OPENROUTER_MODEL, help="OpenRouter model override")
     args = parser.parse_args()
 
     console.print(Panel(
@@ -728,6 +729,13 @@ def main() -> None:
         if voice_duration > 0:
             console.print(f"  Audio duration: {voice_duration:.1f}s")
 
+    # ── Fetch images from Wikimedia Commons (optional) ────────
+    if args.images:
+        console.print("\n[bold]▸ Fetching images from Wikimedia Commons...[/bold]")
+        from fetch_images import download_images as _dl_images
+        saved = _dl_images(org, reel_dir / "images")
+        console.print(f"  [green]✓[/green] {len(saved)} image(s) → images/")
+
     # ── Build reveal + config ──────────────────────────────────
     reveal      = _build_reveal(org, findings, args.brand, 5, voice_duration)
     config_src  = _generate_config(org, reel_slug, args.brand, findings,
@@ -762,6 +770,12 @@ def main() -> None:
     console.print(f"    reel_config.py   — render config")
     if args.voice and voice_duration > 0:
         console.print(f"    voiceover.mp3    — synthesised audio")
+    if not args.images:
+        console.print()
+        console.print("  Add images (pick one):")
+        console.print(f"    python fetch_images.py \"{org}\" reels/{reel_slug}")
+        console.print(f"    python fetch_images.py \"{org}\" reels/{reel_slug} --query \"stadium crowd\"")
+        console.print(f"    # or drop JPGs manually into reels/{reel_slug}/images/")
     console.print()
     console.print("  To render:")
     console.print(f"    python reel_template/make_reel.py reels/{reel_slug}")
