@@ -72,12 +72,12 @@ TUMBLR_VIBE_TAGS = {
 
 HASHTAG_POOLS = {
     "finance": {
-        "ig_core":   ["followthemoney", "financereels", "sportsbusiness", "moneymoves",
+        "ig_core":   ["fol.lowthemoney", "financereels", "sportsbusiness", "moneymoves",
                       "businessbreakdown", "financialfacts", "revenuemodel", "howmoneyworks"],
         "ig_niche":  ["sportsfinance", "leaguemoney", "brandrevenue", "businessofsports",
                       "moneyexplained", "financetok", "businessinsider"],
         "ig_place":  [],
-        "tt_core":   ["followthemoney", "financetok", "businesstok", "moneytiktok",
+        "tt_core":   ["fol.lowthemoney", "financetok", "businesstok", "moneytiktok",
                       "sportsfinance", "revenuebreakdown", "businessbreakdown"],
         "tt_viral":  ["fyp", "foryou", "foryoupage"],
     },

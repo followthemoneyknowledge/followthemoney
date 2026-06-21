@@ -32,7 +32,7 @@ from rich import box
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from research import (
+from pipeline.research import (
     fetch_wikipedia_summary,
     fetch_wikipedia_financials,
     extract_money_mentions,
@@ -40,7 +40,7 @@ from research import (
     TextExtractor,
     fetch_url,
 )
-from trends import ORG_ANGLES
+from pipeline.trends import ORG_ANGLES
 
 load_dotenv(SCRIPT_DIR / ".env", override=False)
 
@@ -732,7 +732,7 @@ def main() -> None:
     # ── Fetch images from Wikimedia Commons (optional) ────────
     if args.images:
         console.print("\n[bold]▸ Fetching images from Wikimedia Commons...[/bold]")
-        from fetch_images import download_images as _dl_images
+        from pipeline.fetch_images import download_images as _dl_images
         saved = _dl_images(org, reel_dir / "images")
         console.print(f"  [green]✓[/green] {len(saved)} image(s) → images/")
 
@@ -773,21 +773,21 @@ def main() -> None:
     if not args.images:
         console.print()
         console.print("  Add images (pick one):")
-        console.print(f"    python fetch_images.py \"{org}\" reels/{reel_slug}")
-        console.print(f"    python fetch_images.py \"{org}\" reels/{reel_slug} --query \"stadium crowd\"")
+        console.print(f"    python pipeline/fetch_images.py \"{org}\" reels/{reel_slug}")
+        console.print(f"    python pipeline/fetch_images.py \"{org}\" reels/{reel_slug} --query \"stadium crowd\"")
         console.print(f"    # or drop JPGs manually into reels/{reel_slug}/images/")
     console.print()
     console.print("  To render:")
-    console.print(f"    python reel_template/make_reel.py reels/{reel_slug}")
+    console.print(f"    python reel/make_reel.py reels/{reel_slug}")
     console.print("═" * 62)
 
     if args.run:
-        reel_template = SCRIPT_DIR / "reel_template" / "make_reel.py"
+        reel_template = SCRIPT_DIR / "reel" / "make_reel.py"
         if reel_template.exists():
             console.print("\n[bold]▸ Running make_reel.py...[/bold]")
             subprocess.run([sys.executable, str(reel_template), str(reel_dir)])
         else:
-            console.print("[yellow]  ⚠ reel_template/make_reel.py not found — skipping render[/yellow]")
+            console.print("[yellow]  ⚠ reel/make_reel.py not found — skipping render[/yellow]")
 
 
 if __name__ == "__main__":
