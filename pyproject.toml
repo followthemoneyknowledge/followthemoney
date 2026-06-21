@@ -1,0 +1,24 @@
+[project]
+name = "follow-the-money"
+version = "0.1.0"
+description = "Short-form reel pipeline: trend detection → revenue research → script generation"
+requires-python = ">=3.10"
+dependencies = [
+    "feedparser>=6.0",
+    "httpx>=0.27",
+    "python-dotenv>=1.0",
+    "rich>=13.0",
+    "edge-tts>=6.1",        # male/female TTS fallback when ElevenLabs is not set
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+]
+
+
+[tool.uv]
+package = false
+dev-dependencies = [
+    "ruff",
+]
